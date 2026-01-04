@@ -7,7 +7,7 @@
     <meta name="description" content="The Legend of Atlantis Escape Room">
     <link rel="canonical" href="https://madadata2024.github.io/esc/escape-room-2.html">
     <title>Responsive Interactive Image Map</title>
-    <style>
+<style>
         body {
             font-family: sans-serif;
             margin: 0; padding: 0;
@@ -432,18 +432,22 @@
     <!-- Main Content -->
     <div id="main-content">
         <div id="image-container">
-            <img src="https://ik.imagekit.io/kat6te0cx/fundsos/vvv.jpg?updatedAt=1766859751276" alt="Mysterious Hallway" usemap="#hallway-map" width="1280" height="720">
+            <img src="https://ik.imagekit.io/kat6te0cx/fundsos/vground.jpg?updatedAt=1767530316535" alt="Mysterious Hallway" usemap="#hallway-map" width="1280" height="720">
 
             <map name="hallway-map">
                 <!-- Paintings with collectible items -->
+                <!-- Added key to Painting 1 -->
                 <area shape="rect" coords="1276,9,1036,238" href="#" alt="Painting 1"
                       onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/the%20face%20of%20war.jpg')">
+					  
+				<area shape="poly" coords="1189,576,1103,608,1123,642,1199,602" href="#" alt="Painting 1-1"
+                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/key1.png?updatedAt=1767530317478', 'Golden Key', '🔑', 'A mysterious golden key. It might open something important.')">
                 
                 <area shape="poly" coords="746,111,848,90,849,217,749,211" href="#2" alt="Painting 2" 
-                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/plague%20of%20ashdod.jpg?updatedAt=1766817278622')">
+                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/plague%20of%20ashdod.jpg?updatedAt=1767441955760')">
                       
                 <area shape="poly" coords="499,60,570,55,575,109,499,113" href="#3" alt="Painting 3" 
-                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/code.jpg?updatedAt=1766817277711')">
+                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/code.jpg?updatedAt=1767441397553')">
                       
                 <area shape="poly" coords="212,504,269,666,324,607,280,450" href="#3" alt="Painting 4" 
                       onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/the%20death%20of%20seneca.jpg?updatedAt=1766817278181')">
@@ -451,8 +455,13 @@
                 <area shape="poly" coords="101,31,265,60,274,227,88,258" href="#3" alt="Painting 5" 
                       onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/great%20famine.jpg?updatedAt=1766817278644')">
                 
+                <!-- Left Door (existing) -->
                 <area shape="poly" coords="288,5,367,39,357,451,290,455" href="#" alt="Left Door" 
                       id="leftDoor" class="clickable-area" data-target="doorPopup">
+                
+                <!-- NEW: Right Door -->
+                <area shape="poly" coords="1000,335,929,329,930,409,997,431" href="#" alt="Right Door" 
+                      id="rightDoor" class="clickable-area">
             </map>
         </div>
     </div>
@@ -473,7 +482,7 @@
         </div>
     </div>
     
-    <!-- Door Popup -->
+    <!-- Left Door Popup (existing) -->
     <div id="doorPopup" class="popup-overlay">
         <div class="popup-content">
             <button class="close-btn" id="doorCloseBtn">×</button>
@@ -518,6 +527,39 @@
         </div>
     </div>
 
+    <!-- NEW: Right Door Popup -->
+    <div id="rightDoorPopup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="close-btn" id="rightDoorCloseBtn">×</button>
+            
+            <h2 class="door-title">Right Door</h2>
+            
+            <div class="door-instruction">
+                This door is securely locked with an ancient lock.
+            </div>
+            
+            <!-- Door status based on having key -->
+            <div id="doorStatus">
+                <div class="door-locked" id="lockedMessage">
+                    🔒 The door is locked. You need a key to open it.
+                </div>
+                <div class="door-requires" id="keyRequirement">
+                    Requires: <span class="key-icon">🔑</span> Golden Key
+                </div>
+            </div>
+            
+            <!-- Use key button (only shows if player has key) -->
+            <button id="useKeyBtn" class="use-key-btn" onclick="useKeyToOpenDoor()">
+                Use Golden Key to Open
+            </button>
+            
+            <!-- Success message -->
+            <div class="message success" id="rightDoorSuccess" style="display: none;">
+                ✓ Door unlocked! The golden key fits perfectly.
+            </div>
+        </div>
+    </div>
+
     <!-- Item Collection Notification -->
     <div id="item-notification" class="item-notification">
         Item added to inventory!
@@ -527,6 +569,7 @@
         // Inventory System
         let inventory = JSON.parse(localStorage.getItem('escapeRoomInventory')) || [];
         let currentItem = null;
+        let hasGoldenKey = false;
 
         // DOM Elements
         const inventoryItems = document.getElementById('inventory-items');
@@ -538,8 +581,23 @@
         const itemDescription = document.getElementById('item-description');
         const itemNotification = document.getElementById('item-notification');
 
-        // Initialize inventory display
+        // NEW: Right door elements
+        const rightDoor = document.getElementById('rightDoor');
+        const rightDoorPopup = document.getElementById('rightDoorPopup');
+        const rightDoorCloseBtn = document.getElementById('rightDoorCloseBtn');
+        const useKeyBtn = document.getElementById('useKeyBtn');
+        const lockedMessage = document.getElementById('lockedMessage');
+        const rightDoorSuccess = document.getElementById('rightDoorSuccess');
+
+        // Initialize inventory and check for key
         updateInventoryDisplay();
+        checkForKey();
+
+        // Check if player has the golden key
+        function checkForKey() {
+            hasGoldenKey = inventory.some(item => item.name === 'Golden Key');
+            console.log('Has golden key:', hasGoldenKey);
+        }
 
         // Modified openPopup function to handle items
         function openPopup(event, imageUrl, itemNameText = null, itemIcon = null, itemDesc = null) {
@@ -598,8 +656,9 @@
                 // Save to localStorage
                 localStorage.setItem('escapeRoomInventory', JSON.stringify(inventory));
                 
-                // Update display
+                // Update display and check for key
                 updateInventoryDisplay();
+                checkForKey();
                 
                 // Show notification
                 showNotification(`🎉 ${currentItem.name} added to inventory!`);
@@ -644,13 +703,79 @@
             });
         }
 
+        // NEW: Right door functionality
+        rightDoor.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Update button state based on having key
+            if (hasGoldenKey) {
+                useKeyBtn.disabled = false;
+                useKeyBtn.textContent = "Use Golden Key to Open";
+                lockedMessage.innerHTML = "🔓 You have the key! Ready to unlock.";
+            } else {
+                useKeyBtn.disabled = true;
+                useKeyBtn.textContent = "Need Golden Key";
+                lockedMessage.innerHTML = "🔒 The door is locked. You need a golden key to open it.";
+            }
+            
+            // Hide success message if shown previously
+            rightDoorSuccess.style.display = 'none';
+            
+            // Show the popup
+            rightDoorPopup.style.display = 'flex';
+        });
+
+        // Close right door popup
+        rightDoorCloseBtn.addEventListener('click', function() {
+            rightDoorPopup.style.display = 'none';
+        });
+
+        rightDoorPopup.addEventListener('click', function(e) {
+            if (e.target === rightDoorPopup) {
+                rightDoorPopup.style.display = 'none';
+            }
+        });
+
+        // NEW: Use key to open door
+        function useKeyToOpenDoor() {
+            if (hasGoldenKey) {
+                // Show success message
+                rightDoorSuccess.style.display = 'block';
+                
+                // Animate the door
+                const mainImage = document.querySelector('#image-container img');
+                if (mainImage) {
+                    mainImage.classList.add('door-open');
+                }
+                
+                // Remove key from inventory
+                inventory = inventory.filter(item => item.name !== 'Golden Key');
+                localStorage.setItem('escapeRoomInventory', JSON.stringify(inventory));
+                updateInventoryDisplay();
+                checkForKey();
+                
+                // Update button state
+                useKeyBtn.disabled = true;
+                useKeyBtn.textContent = "Door Unlocked";
+                
+                // Redirect after delay (you can change the URL)
+                setTimeout(() => {
+                    window.location.href = "https://www.facebook.com"; // Change to your next room URL
+                }, 2000);
+            }
+        }
+
         // Clear inventory (for testing)
         function clearInventory() {
             inventory = [];
             localStorage.removeItem('escapeRoomInventory');
             updateInventoryDisplay();
+            checkForKey();
             showNotification('Inventory cleared!');
         }
+
+        // ... (rest of your existing door puzzle code remains the same) ...
 
         // Door Puzzle Code (from previous implementation)
         const leftDoor = document.getElementById('leftDoor');
