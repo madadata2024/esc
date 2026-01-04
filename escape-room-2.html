@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="title" content="The Legend of Atlantis Escape Room">
+    <meta name="description" content="The Legend of Atlantis Escape Room">
+    <link rel="canonical" href="https://madadata2024.github.io/esc/">
+    <title>The Legend of Atlantis Escape Room</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0; padding: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
+        /* Inventory Sidebar */
+        #inventory-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 70px;
+            height: 100%;
+            background: linear-gradient(180deg, #2d2d44 0%, #1f1f35 100%);
+            z-index: 100;
+            transition: width 0.3s ease;
+            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.4);
+            border-right: 2px solid #ffd700;
+        }
+
+        #inventory-sidebar:hover {
+            width: 250px;
+        }
+
+        .inventory-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1em;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .inventory-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .inventory-items {
+            padding: 15px 0;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #fff;
+            text-decoration: none;
+            transition: background 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .inventory-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .item-icon {
+            width: 30px;
+            height: 30px;
+            background: #444;
+            border-radius: 5px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #ffd700;
+        }
+
+        .item-name {
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        #inventory-sidebar:hover .item-name {
+            opacity: 1;
+        }
+
+        .item-count {
+            background: #ff4757;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .empty-inventory {
+            color: #888;
+            font-style: italic;
+            padding: 20px 15px;
+            text-align: center;
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* Main Content */
+        #main-content {
+            flex: 1;
+            margin-left: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        #inventory-sidebar:hover ~ #main-content {
+            margin-left: 250px;
+        }
+
+        #image-container {
+            position: relative;
+            max-width: 100%;
+        }
+        
+        #image-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Popup overlay */
+        #popup-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        /* Popup content */
+        #popup-content {
+            position: relative;
+            background-color: #fff;
+            padding: 20px; border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 90%; max-height: 90%;
+        }
+        
+        #popup-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+        }
+
+        /* Close Button */
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #000;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 1001;
+            background-color: yellow;
+            border: 2px solid red;
+            padding: 0 8px;
+            line-height: 1;
+        }
+
+        #close-btn:hover {
+            color: #ff0000;
+        }
+		
+        /* Door Popup Styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background: linear-gradient(145deg, #2d2d44, #1f1f35);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            border: 2px solid #ffd700;
+            position: relative;
+            animation: popupAppear 0.3s ease-out;
+        }
+
+        @keyframes popupAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ffd700;
+        }
+
+        .door-title {
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .door-instruction {
+            margin-bottom: 30px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        /* Keypad Styles */
+        .keypad-container {
+            margin: 30px 0;
+        }
+
+        .code-display {
+            background: rgba(200, 200, 200, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 2em;
+            letter-spacing: 10px;
+            margin-bottom: 25px;
+            min-height: 60px;
+            border: 2px solid #444;
+            font-family: monospace;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .key {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .key:hover {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        .key:active {
+            transform: translateY(1px);
+        }
+
+        .enter-key {
+            grid-column: span 3;
+            background: #ffd700;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .enter-key:hover {
+            background: #ffed4e;
+        }
+
+        .clear-key {
+            background: #ff4757;
+        }
+
+        .clear-key:hover {
+            background: #ff6b81;
+        }
+
+        /* Message Styles */
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .success {
+            background: rgba(46, 213, 115, 0.2);
+            border: 2px solid #2ed573;
+            color: #2ed573;
+        }
+
+        .error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 2px solid #ff4757;
+            color: #ff4757;
+        }
+
+        /* Collect Item Button */
+        .collect-btn {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .collect-btn:hover {
+            background: #ffed4e;
+        }
+
+        /* Item collected notification */
+        .item-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ed573;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .door-open {
+            animation: doorOpen 2s ease-in-out;
+        }
+
+        @keyframes doorOpen {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.5); }
+            100% { filter: brightness(1); }
+        }
+
+        /* Scrollbar for inventory */
+        .inventory-items::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .inventory-items::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-items::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Inventory Sidebar -->
+    <div id="inventory-sidebar">
+        <div class="inventory-header">
+            <span class="inventory-icon">🎒</span>
+            <span class="inventory-title">Inventory</span>
+        </div>
+        <div class="inventory-items" id="inventory-items">
+            <!-- Items will be added here by JavaScript -->
+            <div class="empty-inventory">No items yet. Explore to find items!</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content">
+        <div id="image-container">
+            <img src="https://ik.imagekit.io/kat6te0cx/fundsos/office.jpg?updatedAt=1767107947148" alt="The Legend of Atlantis Escape Room" usemap="#hallway-map" width="1392" height="720">
+
+
+            <map name="hallway-map">
+                <!-- Paintings with collectible items -->
+                <area shape="poly" coords="280,595,318,614,289,656,246,640" href="#" title="Try To find code"alt="Try To find code"
+                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/png-message.png?updatedAt=1767108002241')">
+					  
+				<area shape="poly" coords="930,87,1050,49,1060,91,937,124" href="#" title="Free hint for help"alt="Free hint for help"
+                      onclick="openPopup(event, 'https://ik.imagekit.io/kat6te0cx/fundsos/hint.png?updatedAt=1767107978992')">	  
+                
+                <area shape="poly" coords="1217,758,1263,757,1277,214,1077,264,1055,639 " href="#" title="Secret door to escape room" alt="Secret door to escape room" 
+                      id="leftDoor" class="clickable-area" data-target="doorPopup">
+            </map>
+        </div>
+    </div>
+
+    <!-- Single Popup Structure for paintings -->
+    <div id="popup-overlay">
+        <div id="popup-content">
+            <a href="#" id="close-btn" onclick="closePopup(event)">&times;</a>
+            <img src="" alt="Popup Image" id="popup-img">
+            <!-- Collect item button -->
+            <button id="collect-btn" class="collect-btn" style="display: none;" onclick="collectItem()">
+                Collect Item
+            </button>
+            <div id="item-info" style="margin-top: 10px; display: none;">
+                <h3 id="item-name"></h3>
+                <p id="item-description"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Door Popup -->
+    <div id="doorPopup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="close-btn" id="doorCloseBtn">×</button>
+            
+            <h2 class="door-title">أكتب الكود بشكل صحيح لفتح الباب</h2>
+            
+            <!-- Code Display -->
+            <div class="code-display" id="codeDisplay">____</div>
+            
+            <!-- Keypad -->
+            <div class="keypad-container">
+                <div class="keypad" id="keypad">
+                    <!-- Keys 1-9 -->
+                    <button class="key" data-value="1">1</button>
+                    <button class="key" data-value="2">2</button>
+                    <button class="key" data-value="3">3</button>
+                    <button class="key" data-value="4">4</button>
+                    <button class="key" data-value="5">5</button>
+                    <button class="key" data-value="6">6</button>
+                    <button class="key" data-value="7">7</button>
+                    <button class="key" data-value="8">8</button>
+                    <button class="key" data-value="9">9</button>
+                    <!-- Special Keys -->
+                    <button class="key clear-key" id="clearKey">CLEAR</button>
+                    <button class="key" data-value="0">0</button>
+                    <button class="key enter-key" id="enterKey">ENTER</button>
+                </div>
+            </div>
+            
+            <!-- Messages -->
+            <div class="message success" id="successMessage">
+                ✓ SUCCESS! Redirecting to next room
+            </div>
+            
+            <div class="message error" id="errorMessage">
+                ✗ INCORRECT CODE. Try again.
+            </div>
+            
+            <p style="margin-top: 20px; color: #888; font-size: 0.9em;">
+                Hint: Look for clues in the room...
+            </p>
+        </div>
+    </div>
+
+    <!-- Item Collection Notification -->
+    <div id="item-notification" class="item-notification">
+        Item added to inventory!
+    </div>
+
+    <script>
+        // Inventory System
+        let inventory = JSON.parse(localStorage.getItem('escapeRoomInventory')) || [];
+        let currentItem = null;
+
+        // DOM Elements
+        const inventoryItems = document.getElementById('inventory-items');
+        const popupOverlay = document.getElementById('popup-overlay');
+        const popupImage = document.getElementById('popup-img');
+        const collectBtn = document.getElementById('collect-btn');
+        const itemInfo = document.getElementById('item-info');
+        const itemName = document.getElementById('item-name');
+        const itemDescription = document.getElementById('item-description');
+        const itemNotification = document.getElementById('item-notification');
+
+        // Initialize inventory display
+        updateInventoryDisplay();
+
+        // Modified openPopup function to handle items
+        function openPopup(event, imageUrl, itemNameText = null, itemIcon = null, itemDesc = null) {
+            popupImage.src = imageUrl;
+            popupOverlay.style.display = 'flex';
+            event.preventDefault();
+            
+            // Show collect button if item exists
+            if (itemNameText && itemIcon && itemDesc) {
+                currentItem = {
+                    name: itemNameText,
+                    icon: itemIcon,
+                    description: itemDesc
+                };
+                
+                // Check if item is already collected
+                const isCollected = inventory.some(item => item.name === itemNameText);
+                
+                if (!isCollected) {
+                    collectBtn.style.display = 'block';
+                    itemInfo.style.display = 'block';
+                    itemName.textContent = itemNameText;
+                    itemDescription.textContent = itemDesc;
+                } else {
+                    collectBtn.style.display = 'none';
+                    itemInfo.style.display = 'block';
+                    itemName.textContent = itemNameText + " (Already Collected)";
+                    itemDescription.textContent = itemDesc;
+                }
+            } else {
+                collectBtn.style.display = 'none';
+                itemInfo.style.display = 'none';
+                currentItem = null;
+            }
+        }
+
+        function closePopup(event) {
+            popupOverlay.style.display = 'none';
+            event.preventDefault();
+            currentItem = null;
+        }
+
+        // Collect item function
+        function collectItem() {
+            if (currentItem) {
+                // Check if item already exists
+                const existingItem = inventory.find(item => item.name === currentItem.name);
+                
+                if (existingItem) {
+                    existingItem.quantity = (existingItem.quantity || 1) + 1;
+                } else {
+                    currentItem.quantity = 1;
+                    inventory.push(currentItem);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('escapeRoomInventory', JSON.stringify(inventory));
+                
+                // Update display
+                updateInventoryDisplay();
+                
+                // Show notification
+                showNotification(`🎉 ${currentItem.name} added to inventory!`);
+                
+                // Hide collect button
+                collectBtn.style.display = 'none';
+                itemName.textContent = currentItem.name + " (Collected)";
+                
+                // Clear current item
+                currentItem = null;
+            }
+        }
+
+        // Show notification
+        function showNotification(message) {
+            itemNotification.textContent = message;
+            itemNotification.style.display = 'block';
+            
+            setTimeout(() => {
+                itemNotification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Update inventory display
+        function updateInventoryDisplay() {
+            inventoryItems.innerHTML = '';
+            
+            if (inventory.length === 0) {
+                inventoryItems.innerHTML = '<div class="empty-inventory">No items yet. Explore to find items!</div>';
+                return;
+            }
+            
+            inventory.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'inventory-item';
+                itemElement.innerHTML = `
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    ${item.quantity > 1 ? `<div class="item-count">${item.quantity}</div>` : ''}
+                `;
+                inventoryItems.appendChild(itemElement);
+            });
+        }
+
+        // Clear inventory (for testing)
+        function clearInventory() {
+            inventory = [];
+            localStorage.removeItem('escapeRoomInventory');
+            updateInventoryDisplay();
+            showNotification('Inventory cleared!');
+        }
+
+        // Door Puzzle Code (from previous implementation)
+        const leftDoor = document.getElementById('leftDoor');
+        const doorPopup = document.getElementById('doorPopup');
+        const doorCloseBtn = document.getElementById('doorCloseBtn');
+        const keypad = document.getElementById('keypad');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const clearKey = document.getElementById('clearKey');
+        const enterKey = document.getElementById('enterKey');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const mainImage = document.querySelector('#image-container img');
+
+        let enteredCode = '';
+        const correctCode = '357';
+
+        leftDoor.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            doorPopup.style.display = 'flex';
+            resetPuzzle();
+        });
+
+        doorCloseBtn.addEventListener('click', function() {
+            doorPopup.style.display = 'none';
+            resetPuzzle();
+        });
+
+        doorPopup.addEventListener('click', function(e) {
+            if (e.target === doorPopup) {
+                doorPopup.style.display = 'none';
+                resetPuzzle();
+            }
+        });
+
+        keypad.addEventListener('click', function(e) {
+            if (e.target.classList.contains('key') && e.target.dataset.value) {
+                const number = e.target.dataset.value;
+                
+                if (enteredCode.length < 3) {
+                    enteredCode += number;
+                    updateCodeDisplay();
+                    
+                    e.target.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        e.target.style.transform = '';
+                    }, 100);
+                }
+            }
+        });
+
+        clearKey.addEventListener('click', function() {
+            enteredCode = '';
+            updateCodeDisplay();
+            hideMessages();
+        });
+
+        enterKey.addEventListener('click', function() {
+            if (enteredCode.length === 3) {
+                if (enteredCode === correctCode) {
+                    showSuccess();
+                    
+                    if (mainImage) {
+                        mainImage.classList.add('door-open');
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.href = "https://madadata2024.github.io/esc/escape-room-3.html";
+                    }, 1500);
+                    
+                } else {
+                    showError();
+                    
+                    codeDisplay.style.animation = 'shake 0.95s';
+                    setTimeout(() => {
+                        codeDisplay.style.animation = '';
+                    }, 500);
+                    
+                    setTimeout(() => {
+                        enteredCode = '';
+                        updateCodeDisplay();
+                        hideMessages();
+                    }, 1000);
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (doorPopup.style.display === 'flex') {
+                if (e.key >= '0' && e.key <= '9' && enteredCode.length < 3) {
+                    enteredCode += e.key;
+                    updateCodeDisplay();
+                }
+                else if (e.key === 'Backspace') {
+                    enteredCode = '';
+                    updateCodeDisplay();
+                    hideMessages();
+                }
+                else if (e.key === 'Enter' && enteredCode.length === 3) {
+                    enterKey.click();
+                }
+                else if (e.key === 'Escape') {
+                    doorPopup.style.display = 'none';
+                    resetPuzzle();
+                }
+            }
+        });
+
+        function updateCodeDisplay() {
+            let display = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < enteredCode.length) {
+                    display += enteredCode[i];
+                } else {
+                    display += '_';
+                }
+                if (i < 3) display += ' ';
+            }
+            codeDisplay.textContent = display;
+        }
+
+        function showSuccess() {
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            codeDisplay.style.color = '#2ed573';
+            codeDisplay.style.borderColor = '#2ed573';
+        }
+
+        function showError() {
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            codeDisplay.style.color = '#ff4757';
+            codeDisplay.style.borderColor = '#ff4757';
+        }
+
+        function hideMessages() {
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            codeDisplay.style.color = '';
+            codeDisplay.style.borderColor = '';
+        }
+
+        function resetPuzzle() {
+            enteredCode = '';
+            updateCodeDisplay();
+            hideMessages();
+        }
+
+        // Add shake animation for wrong code
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <!-- Responsive Map Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/image-map-resizer/1.0.10/js/imageMapResizer.min.js"></script>
+    <script>
+        imageMapResize();
+        
+        // Add clear inventory button for testing (remove in production)
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Clear Inventory';
+        clearBtn.style.position = 'fixed';
+        clearBtn.style.bottom = '20px';
+        clearBtn.style.right = '20px';
+        clearBtn.style.padding = '10px';
+        clearBtn.style.background = '#ff4757';
+        clearBtn.style.color = 'white';
+        clearBtn.style.border = 'none';
+        clearBtn.style.borderRadius = '5px';
+        clearBtn.style.cursor = 'pointer';
+        clearBtn.style.zIndex = '1000';
+        clearBtn.onclick = clearInventory;
+        document.body.appendChild(clearBtn);
+    </script>
+</body>
+</html>
