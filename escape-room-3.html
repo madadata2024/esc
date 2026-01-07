@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -550,7 +551,7 @@
             
             <!-- Use key button (only shows if player has key) -->
             <button id="useKeyBtn" class="use-key-btn" onclick="useKeyToOpenDoor()">
-                Use Golden Key to Open
+                استخدم المفتاح الذهبي لفتح الباب
             </button>
             
             <!-- Success message -->
@@ -711,7 +712,7 @@
             // Update button state based on having key
             if (hasGoldenKey) {
                 useKeyBtn.disabled = false;
-                useKeyBtn.textContent = "Use Golden Key to Open";
+                useKeyBtn.textContent = "إستخدم المفتاح الذهبي لفتح الباب";
                 lockedMessage.innerHTML = "🔓 You have the key! Ready to unlock.";
             } else {
                 useKeyBtn.disabled = true;
@@ -843,7 +844,7 @@
                     }
                     
                     setTimeout(() => {
-                        window.location.href = "https://www.google.com";
+                        window.location.href = "https://madadata2024.github.io/esc/escape-room-4.html";
                     }, 1000);
                     
                 } else {
